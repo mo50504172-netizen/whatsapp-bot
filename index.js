@@ -1,11 +1,10 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
-const { GoogleGenAI } = require('@google/genai');
-const fs = require('fs');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 const path = require('path');
 const pdfParse = require('pdf-parse');
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 async function loadContracts() {
     let contractsText = "";
