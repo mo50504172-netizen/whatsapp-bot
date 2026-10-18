@@ -28,7 +28,7 @@ async function loadContracts() {
 let SYSTEM_PROMPT = "";
 
 const client = new Client({
-    authStrategy: new LocalAuth({ dataPath: './whatsapp-session' }),
+    authStrategy: new LocalAuth({ clientId: 'real-estate-bot' }),
     puppeteer: {
         headless: true,
         args: [
