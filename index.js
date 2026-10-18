@@ -27,7 +27,8 @@ async function loadContracts() {
 let SYSTEM_PROMPT = "";
 
 const client = new Client({
-    authStrategy: new LocalAuth({ dataPath: './session' }),
+    authStrategy: new LocalAuth({ dataPath: './whatsapp-session' })
+});
     puppeteer: {
         args: ['--no-sandbox', '--disable-setuid-sandbox']
     }
