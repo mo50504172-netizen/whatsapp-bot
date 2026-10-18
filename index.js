@@ -1,6 +1,7 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const fs = require('fs');
 const path = require('path');
 const pdfParse = require('pdf-parse');
 
@@ -27,10 +28,19 @@ async function loadContracts() {
 let SYSTEM_PROMPT = "";
 
 const client = new Client({
-    authStrategy: new LocalAuth({ dataPath: './whatsapp-session' })
-});
+    authStrategy: new LocalAuth({ dataPath: './whatsapp-session' }),
     puppeteer: {
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        headless: true,
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--single-process',
+            '--disable-gpu'
+        ]
     }
 });
 
@@ -45,23 +55,27 @@ client.on('ready', () => {
 
 client.on('message', async (msg) => {
     try {
-        let contents = [SYSTEM_PROMPT];
-        if (msg.hasMedia) {
-            const media = await msg.downloadMedia();
-            contents.push({
-                inlineData: { data: media.data, mimeType: media.mimetype }
-            });
-            contents.push(msg.body || "اشرحلي البند ده قانونياً وكيف أرد على العميل استناداً للعقود.");
-        } else {
-            contents.push(msg.body);
-        }
-
-        const response = await ai.models.generateContent({
+        const model = genAI.getGenerativeModel({ 
             model: 'gemini-1.5-flash',
-            contents: contents,
+            systemInstruction: SYSTEM_PROMPT
         });
 
-        await msg.reply(response.text);
+        let promptParts = [];
+
+        if (msg.hasMedia) {
+            const media = await msg.downloadMedia();
+            promptParts.push({
+                inlineData: { data: media.data, mimeType: media.mimetype }
+            });
+            promptParts.push(msg.body || "اشرحلي البند ده قانونياً وكيف أرد على العميل استناداً للعقود.");
+        } else {
+            promptParts.push(msg.body);
+        }
+
+        const result = await model.generateContent(promptParts);
+        const responseText = result.response.text();
+
+        await msg.reply(responseText);
     } catch (err) {
         console.error("خطأ في المعالجة:", err);
     }
