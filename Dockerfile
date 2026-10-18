@@ -1,14 +1,23 @@
-FROM node:18-slim
-RUN apt-get update && apt-get install -y \
+FROM node:20-slim
+
+# تثبيت Chromium + خطوط تدعم العربي والإيموجي
+RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium \
-    fonts-ipafont-gothic \
-    --no-install-recommends \
-    && rm -rf /var/lib/apt-lists/*
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
-WORKDIR /usr/src/app
+    fonts-freefont-ttf \
+    fonts-noto-core \
+    fonts-noto-color-emoji \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# منع puppeteer من تحميل Chrome تاني واستخدام النسخة المثبتة
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+
+WORKDIR /app
+
 COPY package*.json ./
-RUN npm install
+RUN npm install --omit=dev
+
 COPY . .
-EXPOSE 8080
-CMD [ "node", "index.js" ]
+
+CMD ["node", "index.js"]
